@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.8;
 
-import "@OpenZeppelin/openzeppelin-contracts/token/ERC721/IERC721Reciever.sol";
-import "@OpenZeppelin/openzeppelin-contracts/token/ERC721/IERC721.sol";
+import {IERC721Receiver} from  "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract EnglishAuction is IERC721Reciever {
-    event ContractInitialised();
-    event AuctionStart();
-    event AuctionEnd();
-    event Bid(address indexed bidder, address indexed auctionId, uint256 bidAmount);
+contract EnglishAuction is IERC721Receiver {
 
     enum Status{
         uninitialized,
@@ -32,6 +28,7 @@ contract EnglishAuction is IERC721Reciever {
         address tokenAddress;
         address tokenOwner;
         uint256 tokenId;
+        uint256 minimumBid;
         address winner;
         Status auctionState;
         bool collected;
@@ -56,58 +53,69 @@ contract EnglishAuction is IERC721Reciever {
                 tokenOwner : msg.sender,
                 tokenId : _tokenId,
                 winner : msg.sender,
-                auctionState : 1,
-                collected : 0,
+                auctionState : Status.initialized,
+                minimumBid: _minimumBid,
+                collected : false,
                 maturity : block.timestamp + duration
             }
         );
         auctionItemIds[_tokenAddress][_tokenId] = itemCounter;
         itemCounter++;
-        return 1;
+        return true;
     }   
 
     function placeBid(uint256 _id) external payable returns(bool success){
         require(block.timestamp <= auctionItems[_id].maturity, "Auction ended");
+        require(msg.value > auctionItems[_id].minimumBid, "Bid smaller than minimum bid");
         require(msg.value > highestBid[_id].highestBidAmount, "Bid not sufficient");
         
         unusedBidAmount[highestBid[_id].bidder] -= msg.value;
         highestBid[_id] = Bid(msg.value,  msg.sender, block.timestamp);
-        emit Bid(msg.sender, _id, msg.value);
+        emit BidEvent(msg.sender, _id, msg.value);
         
-        return 1;
+        return true;
     }
 
     function withdrawUnusedBid(uint256 _id) external returns(uint256 amount){
-        require(unusedBidAmount[_id][msg.sender] > 0, "No amount to be withdrawn");
-        msg.sender.transfer(unusedBidAmount[_id]);
-        unusedBidAmount[_id] = 0;
+        uint256 withdrawAmount = unusedBidAmount[msg.sender];
+        require(withdrawAmount > 0, "No amount to be withdrawn");
+        (bool success, ) = msg.sender.call{value:withdrawAmount}("");
+        require(success, "Transfer failed.");
+        unusedBidAmount[msg.sender] = 0;
+
+        return  withdrawAmount;
     }
 
     function selectWinner(uint256 _id) external returns(address winner){
         require(block.timestamp > auctionItems[_id].maturity, "Auction ongoing");
 
         auctionItems[_id].winner = highestBid[_id].bidder;
-        auctionItems[_id].status = Status.ended;
+        auctionItems[_id].auctionState = Status.ended;
+
+        return auctionItems[_id].winner;
     }
 
     function collectNFT(uint256 _id) external returns(bool success){
-        require(auctionItems[_id].status == Status.ended, "Auction not ended yet");
+        require(auctionItems[_id].auctionState == Status.ended, "Auction not ended yet");
         require(auctionItems[_id].winner == msg.sender, "Not the winner");
 
         IERC721(auctionItems[_id].tokenAddress).safeTransferFrom(address(this), msg.sender, auctionItems[_id].tokenId);
-        auctionItems[_id].collected = 1;
+        auctionItems[_id].collected = true;
+        return true;
     }
 
     // This fallback function 
     // will keep all the Ether
-    fallback () public payable{
+    fallback () external payable{
         revert();
     }
-    // function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external virtual override returns (bytes4){
-    //     AuctionItem currentAuction = auctionItems[][data]
-    //     require()
-    // }
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external virtual override returns (bytes4){
+        
+    }
 
 
-
+        receive() external payable {
+            revert();
+        // custom function code
+    }
 }

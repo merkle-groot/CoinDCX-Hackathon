@@ -1,0 +1,15 @@
+{
+  "name": "contracts",
+  "version": "1.0.0",
+  "description": "> TODO: description",
+  "author": "Varun Krishna S <varunhawk19@gmail.com>",
+  "homepage": "https://github.com/merkle-groot/CoinDCX-Hackathon#readme",
+  "license": "MIT",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.7.3",
+    "hardhat": "^2.10.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2"
+  }
+}
