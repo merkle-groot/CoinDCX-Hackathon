@@ -6,6 +6,11 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract EnglishAuction is IERC721Receiver {
 
+    event ContractInitialised();
+    event AuctionStart();
+    event AuctionEnd();
+    event BidEvent(address indexed bidder, uint256 indexed tokenId, uint256 bidAmount);
+
     enum Status{
         uninitialized,
         initialized,
@@ -13,7 +18,6 @@ contract EnglishAuction is IERC721Receiver {
     }
 
     uint256 private itemCounter;
-
 
     struct Bid{
         uint256 highestBidAmount;
