@@ -7,8 +7,8 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 contract EnglishAuction is IERC721Receiver {
 
     event ContractInitialised();
-    event AuctionStart();
-    event AuctionEnd();
+    event AuctionStart(uint256 auctionId, uint256 timestamp);
+    event AuctionEnd(uint256 auctionId, uint256 timestamp);
     event BidEvent(address indexed bidder, uint256 indexed tokenId, uint256 bidAmount);
 
     enum Status{
@@ -46,7 +46,7 @@ contract EnglishAuction is IERC721Receiver {
     mapping(uint256 => Bid) highestBid;
 
     constructor(){
-
+        emit ContractInitialised();
     }
     
     function initialiseAuction(address _tokenAddress,  uint256 _tokenId, uint256 duration, uint256 _minimumBid) external returns(bool success){   
@@ -64,7 +64,10 @@ contract EnglishAuction is IERC721Receiver {
             }
         );
         auctionItemIds[_tokenAddress][_tokenId] = itemCounter;
+
+        event AuctionStart(uint256 auctionId, uint256 timestamp);
         itemCounter++;
+        
         return true;
     }   
 
@@ -87,7 +90,7 @@ contract EnglishAuction is IERC721Receiver {
         require(success, "Transfer failed.");
         unusedBidAmount[msg.sender] = 0;
 
-        return  withdrawAmount;
+        return withdrawAmount;
     }
 
     function selectWinner(uint256 _id) external returns(address winner){
@@ -96,6 +99,7 @@ contract EnglishAuction is IERC721Receiver {
         auctionItems[_id].winner = highestBid[_id].bidder;
         auctionItems[_id].auctionState = Status.ended;
 
+        emit AuctionEnd(_id, block.timestamp);
         return auctionItems[_id].winner;
     }
 
@@ -113,13 +117,10 @@ contract EnglishAuction is IERC721Receiver {
     fallback () external payable{
         revert();
     }
+
+
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external virtual override returns (bytes4){
-        
+        return 0x150b7a02;
     }
 
-
-        receive() external payable {
-            revert();
-        // custom function code
-    }
 }
