@@ -65,9 +65,9 @@ contract EnglishAuction is IERC721Receiver {
         );
         auctionItemIds[_tokenAddress][_tokenId] = itemCounter;
 
-        event AuctionStart(uint256 auctionId, uint256 timestamp);
+        emit AuctionStart(itemCounter, block.timestamp);
         itemCounter++;
-        
+
         return true;
     }   
 
