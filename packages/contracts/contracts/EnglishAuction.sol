@@ -48,11 +48,14 @@ contract EnglishAuction is IERC721Receiver {
     constructor(){
         emit ContractInitialised();
     }
-    
+    ///@dev intialiseAuction, lets the owner create a new NFT to be auction with a particular auction stratergy
+    ///@param _tokenAddress address of the nft token
+    ///@param _tokenId the tokenId of the NFT
+    ///@param duration the duration for which the auction remains valid
+    ///@param _minimumBid the minimumBid Which is to be placed for a bid to be valid
     function initialiseAuction(address _tokenAddress,  uint256 _tokenId, uint256 duration, uint256 _minimumBid) external returns(bool success){   
         IERC721(_tokenAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
-        auctionItems[itemCounter] storage = AuctionItem(
-            {
+        auctionItems[itemCounter]  = AuctionItem({
                 tokenAddress : _tokenAddress,
                 tokenOwner : msg.sender,
                 tokenId : _tokenId,
@@ -103,6 +106,9 @@ contract EnglishAuction is IERC721Receiver {
         return auctionItems[_id].winner;
     }
 
+    /// @dev function to be called a
+    /// @param _id the id of the auction item on which collect is to be done
+    /// @return success a boolean which indicated whether it was succesful or not
     function collectNFT(uint256 _id) external returns(bool success){
         require(auctionItems[_id].auctionState == Status.ended, "Auction not ended yet");
         require(auctionItems[_id].winner == msg.sender, "Not the winner");
@@ -118,7 +124,7 @@ contract EnglishAuction is IERC721Receiver {
         revert();
     }
 
-
+    ///@dev function which is executed when an NFt is deposited into the contract
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external virtual override returns (bytes4){
         return 0x150b7a02;
     }

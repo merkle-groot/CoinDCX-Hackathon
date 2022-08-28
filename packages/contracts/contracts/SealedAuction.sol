@@ -51,7 +51,12 @@ contract Sealed is IERC721Receiver {
     constructor() public{   
         emit ContractInitialisedEvent();
     }
-
+    
+    ///@dev intialiseAuction, lets the owner create a new NFT to be auction with a particular auction stratergy
+    ///@param _tokenAddress address of the nft token
+    ///@param _tokenId the tokenId of the NFT
+    ///@param duration the duration for which the auction remains valid
+    ///@param _minimumBid the minimumBid Which is to be placed for a bid to be valid
     function initialiseAuction(address _tokenAddress, uint256 _tokenId, uint256 _duration, uint256 _minimumBid) external returns(bool success){   
         IERC721(_tokenAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
         auctionItems[itemCounter] storage = AuctionItem(
