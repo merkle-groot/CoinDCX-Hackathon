@@ -69,7 +69,7 @@ contract BurningCandle is VRFConsumerBaseV2, IERC721Receiver {
     
     function initialiseAuction(address _tokenAddress,  uint256 _tokenId, uint256 duration, uint256 _minimumBid) external returns(bool success){   
         IERC721(_tokenAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
-        auctionItems[itemCounter] = AuctionItem(
+        auctionItems[itemCounter] storage = AuctionItem(
             {
                 tokenAddress : _tokenAddress,
                 tokenOwner : msg.sender,
